@@ -287,3 +287,25 @@ td:first-child {
     height: 180px; /* Perfect height for a donut chart */
     margin-top: 1.5rem;
 }
+/* Add to end of style.css */
+.action-btn {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    border: none;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+    transition: background-color 0.2s;
+}
+.action-btn:hover {
+    filter: brightness(1.2);
+}
+.action-btn.start { background-color: var(--accent-green); }
+.action-btn.stop { background-color: var(--accent-red); }
+.action-btn:disabled {
+    background-color: #4b5563;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
