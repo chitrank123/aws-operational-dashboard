@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from flask_cors import CORS
 from bson import ObjectId # Import ObjectId to check its type
 from flask import request
+import boto3
 # --- Configuration ---
 MONGO_URI = "mongodb://localhost:27017/"
 DB_NAME = 'AWSCostData'
@@ -12,6 +13,7 @@ app = Flask(__name__)
 CORS(app)
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
+ec2_client = boto3.client('ec2') # <-- 2. INITIALIZE THE EC2 CLIENT
 
 
 # --- Helper Function to Fix the Error ---
@@ -109,6 +111,33 @@ def get_iam_summary():
         'no_mfa': len(users) - mfa_enabled_count,
         'users': users
     })
+# --- NEW ACTION ROUTE ---
+@app.route('/api/ec2-action', methods=['POST'])
+def ec2_action():
+    data = request.get_json()
+    action = data.get('action')
+    instance_id = data.get('instance_id')
+
+    if not action or not instance_id:
+        return jsonify({"error": "Missing action or instance_id"}), 400
+
+    try:
+        if action == 'start':
+            print(f"Starting instance: {instance_id}")
+            ec2_client.start_instances(InstanceIds=[instance_id])
+            message = f"Successfully initiated start for {instance_id}"
+        elif action == 'stop':
+            print(f"Stopping instance: {instance_id}")
+            ec2_client.stop_instances(InstanceIds=[instance_id])
+            message = f"Successfully initiated stop for {instance_id}"
+        else:
+            return jsonify({"error": "Invalid action"}), 400
+        
+        return jsonify({"success": True, "message": message})
+
+    except Exception as e:
+        print(f"Error performing action {action} on {instance_id}: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
